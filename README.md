@@ -149,7 +149,7 @@ python3 -c "
 a = '6b718382030b717a0000060700000000'
 b = '6b718382030b717b0000060700000000'
 dist = sum(bin(int(x,16)^int(y,16)).count('1') for x,y in zip(a,b))
-print(f'Hamming distance: {dist} bits')  # < 32 = likely same family
+print(f'Hamming distance: {dist} bits')  # 1-3 = nearly identical
 "
 ```
 
@@ -279,8 +279,8 @@ for line in sys.stdin:
     hex_part = fp.split('.')[1]
     dist = sum(bin(int(x,16)^int(y,16)).count('1')
                for x,y in zip(hex_part, known))
-    if dist < 16:
-        print(f'VARIANT match (dist={dist}): {ev[\"src_ip\"]}')
+    if dist <= 3:
+        print(f'NEAR-IDENTICAL (dist={dist}): {ev[\"src_ip\"]}')
 " < eve.json
 ```
 
@@ -329,10 +329,7 @@ http.holloman3.dst == ["o.6b71...0000", "n.7e7d...0900"]
 | Distance | Interpretation |
 |---|---|
 | 0 bits | Byte-exact structural match |
-| 1–8 bits | Same family, very minor variant |
-| 8–32 bits | Same malware family, re-packed or slightly modified |
-| 32–64 bits | Possibly related, different campaign/version |
-| 64+ bits | Unrelated files |
+| 1–3 bits | Nearly identical |
 
 Python utility:
 
@@ -347,6 +344,6 @@ def hamming(a: str, b: str) -> int:
 
 if __name__ == '__main__':
     d = hamming(sys.argv[1], sys.argv[2])
-    label = "same family" if d < 32 else "possibly related" if d < 64 else "unrelated"
+    label = "nearly identical" if d <= 3 else "different"
     print(f"distance={d} bits ({label})")
 ```
